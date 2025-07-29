@@ -12,6 +12,7 @@ class MainController:
         self.main_view.btn_consulta.clicked.connect(self.mostrar_consulta)
         self.main_view.btn_historico.clicked.connect(self.mostrar_historico)
 
+
         self.consulta_view.btn_voltar_consulta.clicked.connect(self.voltar)
         self.consulta_view.input_busca.returnPressed.connect(self.buscar_equipamentos)
         self.historico_view.btn_voltar_historico.clicked.connect(self.voltar)

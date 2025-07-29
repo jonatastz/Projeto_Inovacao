@@ -20,9 +20,9 @@ if __name__ == "__main__":
     historico_view = HistoricoView()
 
     # Adicionar ao stack
-    stacked_widget.addWidget(main_view)       # index 0
-    stacked_widget.addWidget(consulta_view)   # index 1
-    stacked_widget.addWidget(historico_view)  # index 2
+    stacked_widget.addWidget(main_view)      
+    stacked_widget.addWidget(consulta_view)   
+    stacked_widget.addWidget(historico_view)  
 
     # Modelo e controlador
     model = EquipmentModel()

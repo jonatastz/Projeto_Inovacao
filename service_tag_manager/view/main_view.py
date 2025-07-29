@@ -4,11 +4,11 @@ from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QWidget
 class MainView(QMainWindow):
     def __init__(self):
         super().__init__()
-        loaded_ui = uic.loadUi("view/ui_main.ui")  # Carrega o .ui
+        loaded_ui = uic.loadUi("view/ui_main.ui")  
         self.setCentralWidget(loaded_ui)
         self.setWindowTitle("Service Tag Manager")
 
-        # Referências aos componentes
+        
         self.input_tag = loaded_ui.findChild(QWidget, "input_tag")
         self.input_name = loaded_ui.findChild(QWidget, "input_name")
         self.input_desc = loaded_ui.findChild(QWidget, "input_desc")
@@ -17,7 +17,7 @@ class MainView(QMainWindow):
         self.btn_historico = loaded_ui.findChild(QWidget, "btn_historico")
         self.table = loaded_ui.findChild(QWidget, "table")
 
-        # Conectar ações (você pode modificar essas funções depois)
+        
         self.btn_consulta.clicked.connect(self.abrir_pagina_consulta)
         self.btn_historico.clicked.connect(self.abrir_pagina_historico)
 
@@ -34,7 +34,7 @@ class MainView(QMainWindow):
 
 
     def abrir_pagina_consulta(self):
-        print("Abrindo página de consulta...")  # Aqui você pode abrir uma nova janela/tela
+        print("Abrindo página de consulta...") 
 
     def abrir_pagina_historico(self):
-        print("Abrindo página de histórico...")  # Aqui também
+        print("Abrindo página de histórico...") 

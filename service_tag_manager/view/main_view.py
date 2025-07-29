@@ -38,3 +38,5 @@ class MainView(QMainWindow):
 
     def abrir_pagina_historico(self):
         print("Abrindo página de histórico...") 
+
+    

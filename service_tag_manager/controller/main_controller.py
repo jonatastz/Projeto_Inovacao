@@ -27,6 +27,7 @@ class MainController:
     def mostrar_consulta(self):
         self.stacked_widget.setCurrentIndex(1)
 
+
     def buscar_equipamentos(self):
         termo = self.consulta_view.input_busca.text()
         resultados = self.model.buscar_por_tag_ou_nome(termo)

@@ -6,7 +6,7 @@ class MainView(QMainWindow):
         super().__init__()
         loaded_ui = uic.loadUi("view/ui_main.ui")  
         self.setCentralWidget(loaded_ui)
-        self.setWindowTitle("Service Tag Manager")
+        self.setWindowTitle("CADASTRO DE EQUIPAMENTOS NO MAIN")  # <-- aqui
 
         
         self.input_tag = loaded_ui.findChild(QWidget, "input_tag")
@@ -27,10 +27,10 @@ class MainView(QMainWindow):
         self.input_desc.clear()
 
     def populate_table(self, equipamentos):
-        self.table.setRowCount(len(equipamentos))
-        for i, eq in enumerate(equipamentos):
+       self.table.setRowCount(len(equipamentos))
+       for i, eq in enumerate(equipamentos):
             for j, val in enumerate(eq):
-                self.table.setItem(i, j, QTableWidgetItem(str(val)))
+               self.table.setItem(i, j, QTableWidgetItem(str(val)))
 
 
     def abrir_pagina_consulta(self):

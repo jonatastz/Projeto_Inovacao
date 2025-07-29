@@ -16,6 +16,7 @@ class MainController:
         self.consulta_view.input_busca.returnPressed.connect(self.buscar_equipamentos)
         self.historico_view.btn_voltar_historico.clicked.connect(self.voltar)
 
+
     def adicionar_equipamento(self):
         tag = self.main_view.input_tag.text()
         nome = self.main_view.input_name.text()

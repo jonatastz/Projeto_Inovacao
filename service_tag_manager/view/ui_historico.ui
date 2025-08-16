@@ -7,28 +7,9 @@
   </property>
   <property name="styleSheet">
    <string notr="true"><![CDATA[
-    QWidget {
-        background: qlineargradient(
-            spread:pad,
-            x1:0, y1:0,
-            x2:1, y2:1,
-            stop:0 #a8e6cf,
-            stop:1 #00bcd4
-        );
-    }
-    QPushButton {
-        background-color: #4CAF50;
-        color: white;
-        border-radius: 10px;
-        padding: 8px 16px;
-    }
+    QWidget { background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 #a8e6cf, stop:1 #00bcd4); font-size: 12px; }
+    QPushButton { background-color: #4CAF50; color: white; border-radius: 10px; padding: 8px 16px; font-weight: 600; }
     QPushButton:hover { background-color: #45a049; }
-    QLineEdit, QTextEdit {
-        background-color: #ffffff;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        padding: 4px;
-    }
     QTableWidget { background-color: #ffffff; border-radius: 6px; }
    ]]></string>
   </property>
@@ -36,21 +17,16 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTableWidget" name="table_historico">
-     <property name="columnCount">
-      <number>4</number>
-     </property>
-     <column>
-      <property name="text"><string>Tag</string></property>
-     </column>
-     <column>
-      <property name="text"><string>Nome</string></property>
-     </column>
-     <column>
-      <property name="text"><string>Descrição</string></property>
-     </column>
-     <column>
-      <property name="text"><string>Data</string></property>
-     </column>
+     <property name="columnCount"><number>9</number></property>
+     <column><property name="text"><string>ID</string></property></column>
+     <column><property name="text"><string>Tag</string></property></column>
+     <column><property name="text"><string>Nome</string></property></column>
+     <column><property name="text"><string>Cliente</string></property></column>
+     <column><property name="text"><string>Modelo</string></property></column>
+     <column><property name="text"><string>Status</string></property></column>
+     <column><property name="text"><string>Prioridade</string></property></column>
+     <column><property name="text"><string>Próx. Manut.</string></property></column>
+     <column><property name="text"><string>Data Cad.</string></property></column>
     </widget>
    </item>
 

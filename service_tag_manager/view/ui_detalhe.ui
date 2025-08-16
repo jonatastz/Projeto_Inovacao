@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DetalheDialog</class>
+ <widget class="QDialog" name="DetalheDialog">
+  <property name="windowTitle"><string>Detalhe do Equipamento</string></property>
+  <property name="minimumSize"><size><width>520</width><height>460</height></size></property>
+  <layout class="QVBoxLayout" name="vertical">
+   <item>
+    <layout class="QGridLayout" name="grid" columnstretch="0,1,0,1">
+     <item row="0" column="0"><widget class="QLabel"><property name="text"><string>Tag</string></property></widget></item>
+     <item row="0" column="1"><widget class="QLineEdit" name="fld_tag"><property name="readOnly"><bool>true</bool></property></widget></item>
+     <item row="0" column="2"><widget class="QLabel"><property name="text"><string>Nome</string></property></widget></item>
+     <item row="0" column="3"><widget class="QLineEdit" name="fld_nome"><property name="readOnly"><bool>true</bool></property></widget></item>
+
+     <item row="1" column="0"><widget class="QLabel"><property name="text"><string>Cliente</string></property></widget></item>
+     <item row="1" column="1"><widget class="QLineEdit" name="fld_cliente"><property name="readOnly"><bool>true</bool></property></widget></item>
+     <item row="1" column="2"><widget class="QLabel"><property name="text"><string>Modelo</string></property></widget></item>
+     <item row="1" column="3"><widget class="QLineEdit" name="fld_modelo"><property name="readOnly"><bool>true</bool></property></widget></item>
+
+     <item row="2" column="0"><widget class="QLabel"><property name="text"><string>Nº Série</string></property></widget></item>
+     <item row="2" column="1"><widget class="QLineEdit" name="fld_serial"><property name="readOnly"><bool>true</bool></property></widget></item>
+     <item row="2" column="2"><widget class="QLabel"><property name="text"><string>Tipo</string></property></widget></item>
+     <item row="2" column="3"><widget class="QLineEdit" name="fld_tipo"><property name="readOnly"><bool>true</bool></property></widget></item>
+
+     <item row="3" column="0"><widget class="QLabel"><property name="text"><string>Status</string></property></widget></item>
+     <item row="3" column="1"><widget class="QComboBox" name="combo_status">
+       <item><property name="text"><string>Recebido</string></property></item>
+       <item><property name="text"><string>Em análise</string></property></item>
+       <item><property name="text"><string>Aguardando peças</string></property></item>
+       <item><property name="text"><string>Em reparo</string></property></item>
+       <item><property name="text"><string>Pronto</string></property></item>
+       <item><property name="text"><string>Entregue</string></property></item>
+     </widget></item>
+     <item row="3" column="2"><widget class="QLabel"><property name="text"><string>Prioridade</string></property></widget></item>
+     <item row="3" column="3"><widget class="QComboBox" name="combo_prioridade">
+       <item><property name="text"><string>Baixa</string></property></item>
+       <item><property name="text"><string>Média</string></property></item>
+       <item><property name="text"><string>Alta</string></property></item>
+       <item><property name="text"><string>Urgente</string></property></item>
+     </widget></item>
+
+     <item row="4" column="0"><widget class="QLabel"><property name="text"><string>Próx. Manut.</string></property></widget></item>
+     <item row="4" column="1"><widget class="QDateEdit" name="date_prox"><property name="calendarPopup"><bool>true</bool></property><property name="displayFormat"><string>yyyy-MM-dd</string></property></widget></item>
+     <item row="4" column="2"><widget class="QLabel"><property name="text"><string>Data Cad.</string></property></widget></item>
+     <item row="4" column="3"><widget class="QLineEdit" name="fld_data"><property name="readOnly"><bool>true</bool></property></widget></item>
+
+     <item row="5" column="0" colspan="4"><widget class="QLabel"><property name="text"><string>Descrição</string></property></widget></item>
+     <item row="6" column="0" colspan="4"><widget class="QTextEdit" name="txt_desc"><property name="readOnly"><bool>true</bool></property></widget></item>
+
+     <item row="7" column="0" colspan="4"><widget class="QLabel"><property name="text"><string>Observações</string></property></widget></item>
+     <item row="8" column="0" colspan="4"><widget class="QTextEdit" name="txt_obs"/></item>
+    </layout>
+   </item>
+
+   <item>
+    <layout class="QHBoxLayout">
+     <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint"><size><width>40</width><height>20</height></size></property></spacer></item>
+     <item><widget class="QPushButton" name="btn_salvar"><property name="text"><string>Salvar</string></property></widget></item>
+     <item><widget class="QPushButton" name="btn_cancelar"><property name="text"><string>Cancelar</string></property></widget></item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

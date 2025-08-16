@@ -1,4 +1,3 @@
-# model/equipment_model.py
 import sqlite3
 
 class EquipmentModel:
@@ -6,120 +5,187 @@ class EquipmentModel:
         self.conn = sqlite3.connect(db_path)
         self.conn.execute("PRAGMA foreign_keys = ON;")
         self._criar_tabela()
-        self._migrar_data_cadastro()
+        self._migrar_colunas()
         self._sanear_tags_e_deduplicar()
         self._garantir_indices()
 
     def _criar_tabela(self):
-        """
-        Cria a tabela caso não exista. Em bases novas, já cria com data_cadastro.
-        Em bases antigas (sem a coluna), a migração é feita em _migrar_data_cadastro.
-        """
-        cursor = self.conn.cursor()
-        cursor.execute('''
+        c = self.conn.cursor()
+        c.execute("""
             CREATE TABLE IF NOT EXISTS equipamentos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                tag TEXT,                -- pode estar sem NOT NULL em bases antigas
+                tag TEXT,
                 nome TEXT NOT NULL,
                 descricao TEXT,
-                data_cadastro TEXT       -- coluna de data
+                data_cadastro TEXT
             )
-        ''')
+        """)
         self.conn.commit()
 
-    def _migrar_data_cadastro(self):
-        """
-        Se a coluna data_cadastro não existir, adiciona SEM default (limitação do SQLite)
-        e preenche os registros antigos com datetime('now').
-        """
-        cursor = self.conn.cursor()
-        cursor.execute("PRAGMA table_info(equipamentos);")
-        colunas = [row[1] for row in cursor.fetchall()]
-        if "data_cadastro" not in colunas:
-            cursor.execute("ALTER TABLE equipamentos ADD COLUMN data_cadastro TEXT;")
-            self.conn.commit()
-            cursor.execute("UPDATE equipamentos SET data_cadastro = datetime('now') WHERE data_cadastro IS NULL;")
-            self.conn.commit()
+    def _migrar_colunas(self):
+        c = self.conn.cursor()
+        c.execute("PRAGMA table_info(equipamentos);")
+        cols = {row[1] for row in c.fetchall()}
+
+        add_cols = []
+        for col_sql in [
+            ("data_cadastro",      "TEXT"),
+            ("cliente",            "TEXT"),
+            ("modelo",             "TEXT"),
+            ("serial",             "TEXT"),
+            ("tipo_servico",       "TEXT"),
+            ("status",             "TEXT"),
+            ("prioridade",         "TEXT"),
+            ("proxima_manutencao", "TEXT"),
+            ("custo",              "REAL"),
+            ("garantia_meses",     "INTEGER"),
+            ("observacoes",        "TEXT"),
+        ]:
+            if col_sql[0] not in cols:
+                add_cols.append(f"ALTER TABLE equipamentos ADD COLUMN {col_sql[0]} {col_sql[1]};")
+
+        for sql in add_cols:
+            c.execute(sql)
+        self.conn.commit()
+
+        c.execute("UPDATE equipamentos SET data_cadastro = COALESCE(data_cadastro, datetime('now')) WHERE data_cadastro IS NULL;")
+        self.conn.commit()
 
     def _sanear_tags_e_deduplicar(self):
-        """
-        - Converte tags vazias/espaços para NULL (evita conflito no UNIQUE).
-        - Remove duplicatas mantendo o registro MAIS RECENTE (maior id) e apagando os antigos.
-        Depois disso já é seguro criar o índice UNIQUE.
-        """
         c = self.conn.cursor()
-
-        # 1) Normalizar: tag vazia vira NULL
         c.execute("UPDATE equipamentos SET tag = NULL WHERE tag IS NULL OR TRIM(tag) = '';")
         self.conn.commit()
-
-        # 2) Encontrar tags duplicadas (não nulas)
         c.execute("""
-            SELECT tag
-            FROM equipamentos
+            SELECT tag FROM equipamentos
             WHERE tag IS NOT NULL
-            GROUP BY tag
-            HAVING COUNT(*) > 1;
+            GROUP BY tag HAVING COUNT(*) > 1;
         """)
-        dups = [row[0] for row in c.fetchall()]
-
-        # 3) Para cada tag duplicada, manter o MAIS RECENTE (maior id) e apagar os outros
+        dups = [r[0] for r in c.fetchall()]
         for tag in dups:
             c.execute("SELECT id FROM equipamentos WHERE tag = ? ORDER BY id DESC;", (tag,))
             ids = [r[0] for r in c.fetchall()]
-            manter = ids[0]
-            apagar = ids[1:]
+            manter, apagar = ids[0], ids[1:]
             if apagar:
                 c.executemany("DELETE FROM equipamentos WHERE id = ?;", [(i,) for i in apagar])
         self.conn.commit()
 
     def _garantir_indices(self):
-        """
-        Cria índices. O UNIQUE em tag será aplicado agora que as duplicatas foram sanadas.
-        Observação: em SQLite, UNIQUE permite múltiplos NULLs, então linhas antigas com tag NULL não quebram o índice.
-        """
         c = self.conn.cursor()
-        c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_equipamentos_tag ON equipamentos(tag);")
-        c.execute("CREATE INDEX IF NOT EXISTS idx_equipamentos_nome ON equipamentos(nome);")
+        c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_equip_tag ON equipamentos(tag);")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_equip_nome ON equipamentos(nome);")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_equip_cliente ON equipamentos(cliente);")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_equip_status ON equipamentos(status);")
         self.conn.commit()
 
-    def adicionar_equipamento(self, tag, nome, descricao):
-        """
-        Adiciona um equipamento. Lança sqlite3.IntegrityError se TAG já existir.
-        """
-        tag = (tag or "").strip()
-        nome = (nome or "").strip()
-        descricao = (descricao or "").strip()
-
-        if not tag or not nome:
-            # Deixe o controller validar e mostrar mensagem. Aqui só garantimos consistência.
-            raise sqlite3.IntegrityError("Tag e Nome são obrigatórios.")
-
+    # --- CRUD ---
+    def adicionar_equipamento(self, tag, nome, descricao, cliente, modelo, serial,
+                              tipo_servico, status, prioridade, proxima_manutencao,
+                              custo, garantia_meses, observacoes):
+        if not tag or not nome or not cliente:
+            raise sqlite3.IntegrityError("Tag, Nome e Cliente são obrigatórios.")
+        tag = tag.strip(); nome = nome.strip(); cliente = cliente.strip()
         c = self.conn.cursor()
-        # Grava data por código (portabilidade; não dependemos de DEFAULT em schema)
-        c.execute('''
-            INSERT INTO equipamentos (tag, nome, descricao, data_cadastro)
-            VALUES (?, ?, ?, datetime('now'))
-        ''', (tag, nome, descricao))
+        c.execute("""
+            INSERT INTO equipamentos
+            (tag, nome, descricao, data_cadastro, cliente, modelo, serial,
+             tipo_servico, status, prioridade, proxima_manutencao, custo,
+             garantia_meses, observacoes)
+            VALUES (?, ?, ?, datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (tag, nome, (descricao or ""), cliente, (modelo or ""), (serial or ""),
+              (tipo_servico or ""), (status or ""), (prioridade or ""),
+              (proxima_manutencao or ""), float(custo or 0), int(garantia_meses or 0),
+              (observacoes or "")))
         self.conn.commit()
-        return True
+        return c.lastrowid
 
-    def listar_equipamentos(self):
+    def obter_por_id(self, equip_id:int):
         c = self.conn.cursor()
-        c.execute('''
-            SELECT tag, nome, descricao, COALESCE(data_cadastro, "")
+        c.execute("""
+            SELECT id, tag, nome, cliente, modelo, serial, descricao, tipo_servico,
+                   status, prioridade, proxima_manutencao, custo, garantia_meses,
+                   observacoes, data_cadastro
+            FROM equipamentos WHERE id = ?
+        """, (equip_id,))
+        return c.fetchone()
+
+    def atualizar_basico(self, equip_id:int, status:str, prioridade:str, proxima_manutencao:str, observacoes:str):
+        c = self.conn.cursor()
+        c.execute("""
+            UPDATE equipamentos
+               SET status = ?, prioridade = ?, proxima_manutencao = ?, observacoes = ?
+             WHERE id = ?
+        """, (status or "", prioridade or "", proxima_manutencao or "", observacoes or "", equip_id))
+        self.conn.commit()
+        return c.rowcount > 0
+
+    def excluir(self, equip_id:int):
+        c = self.conn.cursor()
+        c.execute("DELETE FROM equipamentos WHERE id = ?", (equip_id,))
+        self.conn.commit()
+        return c.rowcount > 0
+
+    # --- Buscas ---
+    def buscar_simples(self, termo=""):
+        """Consulta (com id primeiro): por tag/nome/cliente/modelo."""
+        c = self.conn.cursor()
+        where = []; params = []
+        termo = (termo or "").strip()
+        if termo:
+            like = f"%{termo}%"
+            where.append("(tag LIKE ? OR nome LIKE ? OR cliente LIKE ? OR modelo LIKE ?)")
+            params += [like, like, like, like]
+
+        sql = """
+            SELECT id, COALESCE(tag,''), COALESCE(nome,''), COALESCE(cliente,''), COALESCE(modelo,''),
+                   COALESCE(descricao,''), COALESCE(tipo_servico,''), COALESCE(status,''),
+                   COALESCE(prioridade,''), COALESCE(proxima_manutencao,''), COALESCE(data_cadastro,'')
             FROM equipamentos
-            ORDER BY id DESC
-        ''')
+        """
+        if where:
+            sql += " WHERE " + " AND ".join(where)
+        sql += " ORDER BY id DESC"
+
+        c.execute(sql, params)
         return c.fetchall()
 
-    def buscar_por_tag_ou_nome(self, termo):
+    def buscar_avancado(self, termo="", status="", tipo="", prioridade="",
+                        cliente="", modelo="", data_ini="", data_fim="",
+                        prox_ini="", prox_fim=""):
+        """Histórico (com id primeiro)."""
         c = self.conn.cursor()
-        termo_like = f"%{(termo or '').strip()}%"
-        c.execute('''
-            SELECT tag, nome, descricao, COALESCE(data_cadastro, "")
+        where = []; params = []
+
+        if termo:
+            like = f"%{termo}%"
+            where.append("(tag LIKE ? OR nome LIKE ? OR cliente LIKE ? OR modelo LIKE ?)")
+            params += [like, like, like, like]
+        if status:
+            where.append("status = ?"); params.append(status)
+        if tipo:
+            where.append("tipo_servico = ?"); params.append(tipo)
+        if prioridade:
+            where.append("prioridade = ?"); params.append(prioridade)
+        if cliente:
+            where.append("cliente LIKE ?"); params.append(f"%{cliente}%")
+        if modelo:
+            where.append("modelo LIKE ?"); params.append(f"%{modelo}%")
+        if data_ini:
+            where.append("date(data_cadastro) >= date(?)"); params.append(data_ini)
+        if data_fim:
+            where.append("date(data_cadastro) <= date(?)"); params.append(data_fim)
+        if prox_ini:
+            where.append("date(COALESCE(proxima_manutencao,'')) >= date(?)"); params.append(prox_ini)
+        if prox_fim:
+            where.append("date(COALESCE(proxima_manutencao,'')) <= date(?)"); params.append(prox_fim)
+
+        sql = """
+            SELECT id, COALESCE(tag,''), COALESCE(nome,''), COALESCE(cliente,''), COALESCE(modelo,''),
+                   COALESCE(status,''), COALESCE(prioridade,''), COALESCE(proxima_manutencao,''), COALESCE(data_cadastro,'')
             FROM equipamentos
-            WHERE tag LIKE ? OR nome LIKE ?
-            ORDER BY id DESC
-        ''', (termo_like, termo_like))
+        """
+        if where:
+            sql += " WHERE " + " AND ".join(where)
+        sql += " ORDER BY id DESC"
+
+        c.execute(sql, params)
         return c.fetchall()

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EquipamentoDialog</class>
+ <widget class="QDialog" name="EquipamentoDialog">
+  <property name="windowTitle"><string>Detalhes do Equipamento</string></property>
+  <property name="minimumSize"><size><width>560</width><height>520</height></size></property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+
+   <item>
+    <layout class="QGridLayout" name="grid">
+     <item row="0" column="0"><widget class="QLabel"><property name="text"><string>ID</string></property></widget></item>
+     <item row="0" column="1"><widget class="QLineEdit" name="fld_id"><property name="readOnly"><bool>true</bool></property></widget></item>
+
+     <item row="1" column="0"><widget class="QLabel"><property name="text"><string>Tag</string></property></widget></item>
+     <item row="1" column="1"><widget class="QLineEdit" name="fld_tag"/></item>
+
+     <item row="2" column="0"><widget class="QLabel"><property name="text"><string>Nome</string></property></widget></item>
+     <item row="2" column="1"><widget class="QLineEdit" name="fld_nome"/></item>
+
+     <item row="3" column="0"><widget class="QLabel"><property name="text"><string>Cliente</string></property></widget></item>
+     <item row="3" column="1"><widget class="QLineEdit" name="fld_cliente"/></item>
+
+     <item row="4" column="0"><widget class="QLabel"><property name="text"><string>Modelo</string></property></widget></item>
+     <item row="4" column="1"><widget class="QLineEdit" name="fld_modelo"/></item>
+
+     <item row="5" column="0"><widget class="QLabel"><property name="text"><string>Serial</string></property></widget></item>
+     <item row="5" column="1"><widget class="QLineEdit" name="fld_serial"/></item>
+
+     <item row="6" column="0"><widget class="QLabel"><property name="text"><string>Tipo</string></property></widget></item>
+     <item row="6" column="1"><widget class="QComboBox" name="fld_tipo">
+       <item><property name="text"><string>Diagnóstico</string></property></item>
+       <item><property name="text"><string>Preventiva</string></property></item>
+       <item><property name="text"><string>Corretiva</string></property></item>
+       <item><property name="text"><string>Instalação</string></property></item>
+       <item><property name="text"><string>Atualização</string></property></item>
+     </widget></item>
+
+     <item row="7" column="0"><widget class="QLabel"><property name="text"><string>Status</string></property></widget></item>
+     <item row="7" column="1"><widget class="QComboBox" name="fld_status">
+       <item><property name="text"><string>Recebido</string></property></item>
+       <item><property name="text"><string>Em análise</string></property></item>
+       <item><property name="text"><string>Aguardando peças</string></property></item>
+       <item><property name="text"><string>Em reparo</string></property></item>
+       <item><property name="text"><string>Pronto</string></property></item>
+       <item><property name="text"><string>Entregue</string></property></item>
+     </widget></item>
+
+     <item row="8" column="0"><widget class="QLabel"><property name="text"><string>Prioridade</string></property></widget></item>
+     <item row="8" column="1"><widget class="QComboBox" name="fld_prioridade">
+       <item><property name="text"><string>Baixa</string></property></item>
+       <item><property name="text"><string>Média</string></property></item>
+       <item><property name="text"><string>Alta</string></property></item>
+       <item><property name="text"><string>Urgente</string></property></item>
+     </widget></item>
+
+     <item row="9" column="0"><widget class="QLabel"><property name="text"><string>Próx. Manutenção</string></property></widget></item>
+     <item row="9" column="1"><widget class="QDateEdit" name="fld_proxima"><property name="calendarPopup"><bool>true</bool></property><property name="displayFormat"><string>yyyy-MM-dd</string></property></widget></item>
+
+     <item row="10" column="0"><widget class="QLabel"><property name="text"><string>Custo (R$)</string></property></widget></item>
+     <item row="10" column="1"><widget class="QDoubleSpinBox" name="fld_custo"><property name="maximum"><double>1000000.0</double></property><property name="decimals"><number>2</number></property></widget></item>
+
+     <item row="11" column="0"><widget class="QLabel"><property name="text"><string>Garantia (meses)</string></property></widget></item>
+     <item row="11" column="1"><widget class="QSpinBox" name="fld_garantia"><property name="maximum"><number>60</number></property></widget></item>
+
+     <item row="12" column="0"><widget class="QLabel"><property name="text"><string>Descrição/Defeito</string></property></widget></item>
+     <item row="12" column="1"><widget class="QTextEdit" name="fld_descricao"/></item>
+
+     <item row="13" column="0"><widget class="QLabel"><property name="text"><string>Observações</string></property></widget></item>
+     <item row="13" column="1"><widget class="QTextEdit" name="fld_obs"/></item>
+    </layout>
+   </item>
+
+   <item>
+    <layout class="QHBoxLayout"><item><spacer name="spx"><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+     <item><widget class="QPushButton" name="btn_salvar"><property name="text"><string>Salvar</string></property></widget></item>
+     <item><widget class="QPushButton" name="btn_cancelar"><property name="text"><string>Cancelar</string></property></widget></item>
+    </layout>
+   </item>
+
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

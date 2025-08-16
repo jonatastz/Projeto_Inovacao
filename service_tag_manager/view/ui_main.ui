@@ -2,28 +2,28 @@
 <ui version="4.0">
  <class>MainWidget</class>
  <widget class="QWidget" name="MainWidget">
-  <!-- Título da janela -->
   <property name="windowTitle">
    <string>CADASTRO DE EQUIPAMENTOS</string>
   </property>
   <property name="minimumSize">
    <size>
-    <width>600</width>
-    <height>400</height>
+    <width>720</width>
+    <height>520</height>
    </size>
   </property>
   <property name="styleSheet">
    <string notr="true"><![CDATA[
     QWidget {
         background: qlineargradient(
-            spread:pad,
-            x1:0, y1:0,
-            x2:1, y2:1,
-            stop:0 #a8e6cf,
-            stop:1 #00bcd4
+            spread:pad, x1:0, y1:0, x2:1, y2:1,
+            stop:0 #a8e6cf, stop:1 #00bcd4
         );
+        font-size: 12px;
     }
-
+    QLabel {
+        color: #0f3d3e;
+        font-weight: 600;
+    }
     QPushButton {
         background-color: #4CAF50;
         color: white;
@@ -31,230 +31,237 @@
         padding: 8px 16px;
         font-weight: 600;
     }
-
-    QPushButton:hover {
-        background-color: #45a049;
-    }
-
-    QLineEdit, QTextEdit {
+    QPushButton:hover { background-color: #45a049; }
+    QLineEdit, QTextEdit, QComboBox, QDateEdit, QDoubleSpinBox, QSpinBox {
         background-color: #ffffff;
         border: 1px solid #ccc;
         border-radius: 6px;
         padding: 6px;
     }
-
-    QTableWidget {
-        background-color: #ffffff;
-        border-radius: 6px;
-    }
    ]]></string>
   </property>
 
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,1">
-
-   <!-- Service Tag centralizado -->
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
+   <!-- Título -->
    <item>
-    <layout class="QHBoxLayout" name="hlayout_input_tag">
+    <widget class="QLabel" name="lbl_title">
+     <property name="text">
+      <string>Cadastro de Equipamentos (Service Tag)</string>
+     </property>
      <property name="alignment">
       <set>Qt::AlignHCenter</set>
      </property>
-     <item>
-      <widget class="QLineEdit" name="input_tag">
-       <property name="placeholderText">
-        <string>Service Tag</string>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>255</width>
-         <height>30</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-
-   <!-- Nome do Equipamento centralizado -->
-   <item>
-    <layout class="QHBoxLayout" name="hlayout_input_name">
-     <property name="alignment">
-      <set>Qt::AlignHCenter</set>
+     <property name="styleSheet">
+      <string notr="true">font-size: 18px; font-weight: 700; color:#0b2f2f;</string>
      </property>
-     <item>
-      <widget class="QLineEdit" name="input_name">
-       <property name="placeholderText">
-        <string>Nome do Equipamento</string>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>255</width>
-         <height>30</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-
-   <!-- Descrição centralizado -->
-   <item>
-    <layout class="QHBoxLayout" name="hlayout_input_desc">
-     <property name="alignment">
-      <set>Qt::AlignHCenter</set>
-     </property>
-     <item>
-      <widget class="QTextEdit" name="input_desc">
-       <property name="placeholderText">
-        <string>Descrição</string>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>170</width>
-         <height>80</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-
-   <!-- Botão Adicionar Equipamento centralizado -->
-   <item>
-    <layout class="QHBoxLayout" name="hlayout_btn_add">
-     <property name="alignment">
-      <set>Qt::AlignHCenter</set>
-     </property>
-     <item>
-      <widget class="QPushButton" name="btn_add">
-       <property name="text">
-        <string>Adicionar Equipamento</string>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>140</width>
-         <height>40</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-
-   <!-- Botão Consulta centralizado -->
-   <item>
-    <layout class="QHBoxLayout" name="hlayout_btn_consulta">
-     <property name="alignment">
-      <set>Qt::AlignHCenter</set>
-     </property>
-     <item>
-      <widget class="QPushButton" name="btn_consulta">
-       <property name="text">
-        <string>Consulta</string>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>140</width>
-         <height>40</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-
-   <!-- Botão Histórico centralizado -->
-   <item>
-    <layout class="QHBoxLayout" name="hlayout_btn_historico">
-     <property name="alignment">
-      <set>Qt::AlignHCenter</set>
-     </property>
-     <item>
-      <widget class="QPushButton" name="btn_historico">
-       <property name="text">
-        <string>Histórico</string>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>140</width>
-         <height>40</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-
-   <!-- Tabela que pode expandir para preencher a janela -->
-   <item>
-    <widget class="QTableWidget" name="table">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>1</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="columnCount">
-      <number>4</number>
-     </property>
-     <column>
-      <property name="text">
-       <string>Tag</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Nome</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Descrição</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Data</string>
-      </property>
-     </column>
     </widget>
    </item>
 
+   <!-- Formulário em grade -->
+   <item>
+    <layout class="QGridLayout" name="grid_form" columnstretch="0,1,0,1">
+     <!-- Linha 0 -->
+     <item row="0" column="0">
+      <widget class="QLabel" name="lbl_tag">
+       <property name="text"><string>Service Tag *</string></property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="input_tag">
+       <property name="placeholderText"><string>Ex.: ST-ABC123</string></property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="lbl_nome">
+       <property name="text"><string>Nome do Equipamento *</string></property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QLineEdit" name="input_name">
+       <property name="placeholderText"><string>Ex.: Notebook Dell</string></property>
+      </widget>
+     </item>
+
+     <!-- Linha 1 -->
+     <item row="1" column="0">
+      <widget class="QLabel" name="lbl_cliente">
+       <property name="text"><string>Cliente *</string></property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="input_cliente">
+       <property name="placeholderText"><string>Nome do cliente</string></property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="lbl_modelo">
+       <property name="text"><string>Modelo</string></property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QLineEdit" name="input_modelo">
+       <property name="placeholderText"><string>Ex.: Inspiron 15</string></property>
+      </widget>
+     </item>
+
+     <!-- Linha 2 -->
+     <item row="2" column="0">
+      <widget class="QLabel" name="lbl_serial">
+       <property name="text"><string>Nº de Série</string></property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="input_serial">
+       <property name="placeholderText"><string>Ex.: SN123456789</string></property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QLabel" name="lbl_tipo">
+       <property name="text"><string>Tipo de Serviço</string></property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QComboBox" name="combo_tipo_servico">
+       <item><property name="text"><string>Diagnóstico</string></property></item>
+       <item><property name="text"><string>Preventiva</string></property></item>
+       <item><property name="text"><string>Corretiva</string></property></item>
+       <item><property name="text"><string>Instalação</string></property></item>
+       <item><property name="text"><string>Atualização</string></property></item>
+      </widget>
+     </item>
+
+     <!-- Linha 3 -->
+     <item row="3" column="0">
+      <widget class="QLabel" name="lbl_status">
+       <property name="text"><string>Status</string></property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="combo_status">
+       <item><property name="text"><string>Recebido</string></property></item>
+       <item><property name="text"><string>Em análise</string></property></item>
+       <item><property name="text"><string>Aguardando peças</string></property></item>
+       <item><property name="text"><string>Em reparo</string></property></item>
+       <item><property name="text"><string>Pronto</string></property></item>
+       <item><property name="text"><string>Entregue</string></property></item>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLabel" name="lbl_prioridade">
+       <property name="text"><string>Prioridade</string></property>
+      </widget>
+     </item>
+     <item row="3" column="3">
+      <widget class="QComboBox" name="combo_prioridade">
+       <item><property name="text"><string>Baixa</string></property></item>
+       <item><property name="text"><string>Média</string></property></item>
+       <item><property name="text"><string>Alta</string></property></item>
+       <item><property name="text"><string>Urgente</string></property></item>
+      </widget>
+     </item>
+
+     <!-- Linha 4 -->
+     <item row="4" column="0">
+      <widget class="QLabel" name="lbl_proxima">
+       <property name="text"><string>Próxima Manutenção</string></property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QDateEdit" name="date_proxima">
+       <property name="calendarPopup"><bool>true</bool></property>
+       <property name="displayFormat"><string>yyyy-MM-dd</string></property>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QLabel" name="lbl_custo">
+       <property name="text"><string>Custo (R$)</string></property>
+      </widget>
+     </item>
+     <item row="4" column="3">
+      <widget class="QDoubleSpinBox" name="input_custo">
+       <property name="maximum"><double>1000000.000000</double></property>
+       <property name="decimals"><number>2</number></property>
+       <property name="singleStep"><double>10.000000</double></property>
+      </widget>
+     </item>
+
+     <!-- Linha 5 -->
+     <item row="5" column="0">
+      <widget class="QLabel" name="lbl_garantia">
+       <property name="text"><string>Garantia (meses)</string></property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QSpinBox" name="input_garantia_meses">
+       <property name="maximum"><number>60</number></property>
+      </widget>
+     </item>
+     <item row="5" column="2">
+      <widget class="QLabel" name="lbl_obs">
+       <property name="text"><string>Observações</string></property>
+      </widget>
+     </item>
+     <item row="5" column="3">
+      <widget class="QTextEdit" name="input_observacoes">
+       <property name="placeholderText"><string>Detalhes adicionais...</string></property>
+       <property name="minimumSize">
+        <size><width>170</width><height>60</height></size>
+       </property>
+      </widget>
+     </item>
+
+     <!-- Linha 6 -->
+     <item row="6" column="0">
+      <widget class="QLabel" name="lbl_desc">
+       <property name="text"><string>Descrição (serviço/defeito)</string></property>
+      </widget>
+     </item>
+     <item row="6" column="1" colspan="3">
+      <widget class="QTextEdit" name="input_desc">
+       <property name="placeholderText"><string>Descreva o problema, serviço solicitado, etc.</string></property>
+       <property name="minimumSize">
+        <size><width>300</width><height>80</height></size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+
+   <!-- Ações -->
+   <item>
+    <layout class="QHBoxLayout" name="hlayout_actions">
+     <item>
+      <spacer name="spacer_left">
+       <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       <property name="sizeHint"><size><width>40</width><height>20</height></size></property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_add">
+       <property name="text"><string>Salvar Cadastro</string></property>
+       <property name="minimumSize"><size><width>160</width><height>40</height></size></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_consulta">
+       <property name="text"><string>Consulta</string></property>
+       <property name="minimumSize"><size><width>120</width><height>40</height></size></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_historico">
+       <property name="text"><string>Histórico</string></property>
+       <property name="minimumSize"><size><width>120</width><height>40</height></size></property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="spacer_right">
+       <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       <property name="sizeHint"><size><width>40</width><height>20</height></size></property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
   </layout>
  </widget>
  <resources/>

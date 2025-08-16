@@ -10,9 +10,10 @@ class ConsultaView(QWidget):
         t = self.table_resultados
         t.setColumnCount(11)
         t.setHorizontalHeaderLabels([
-            "ID", "Tag", "Nome", "Cliente", "Modelo", "Descrição",
-            "Tipo", "Status", "Prioridade", "Próx. Manut.", "Data Cad."
+            "ID","Tag","Nome","Cliente","Modelo","Descrição",
+            "Tipo","Status","Prioridade","Próx. Manut.","Data Cad."
         ])
+
         h = t.horizontalHeader()
         h.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # ID
         h.setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Tag
@@ -30,6 +31,5 @@ class ConsultaView(QWidget):
         t.setSelectionBehavior(t.SelectRows)
         t.setSelectionMode(t.SingleSelection)
         t.setEditTriggers(t.NoEditTriggers)
-
-        # Esconde a coluna ID na UI (mas fica disponível para recuperar)
-        t.setColumnHidden(0, True)
+        t.setWordWrap(True)
+        t.setColumnHidden(0, True)  # esconde ID na UI

@@ -1,6 +1,5 @@
-from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox, QMenu
-from PyQt5.QtCore import Qt, QPoint, QDate
-from view.detalheview import DetalheView
+from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox
+from PyQt5.QtCore import Qt
 
 class MainController:
     def __init__(self, stacked_widget, main_view, consulta_view, historico_view, model):
@@ -18,67 +17,34 @@ class MainController:
         # Consulta
         v = self.consulta_view
         v.btn_voltar_consulta.clicked.connect(self.voltar)
+        v.btn_editar.clicked.connect(self._abrir_detalhe_selecionado)
+        v.btn_excluir.clicked.connect(self._excluir_selecionado)
+        v.btn_limpar.clicked.connect(self._consulta_limpar)
+
+        # Busca reativa
         v.input_busca.returnPressed.connect(self._consulta_buscar)
         v.input_busca.textChanged.connect(self._consulta_buscar)
-        v.table_resultados.itemDoubleClicked.connect(self._abrir_detalhe_selecionado)
-        v.table_resultados.setContextMenuPolicy(Qt.CustomContextMenu)
-        v.table_resultados.customContextMenuRequested.connect(self._consulta_context_menu)
+        v.filtro_status.currentIndexChanged.connect(self._consulta_buscar)
+        v.filtro_tipo.currentIndexChanged.connect(self._consulta_buscar)
+        v.filtro_prioridade.currentIndexChanged.connect(self._consulta_buscar)
 
         # Histórico
         h = self.historico_view
         h.btn_voltar_historico.clicked.connect(self.voltar)
-        h.table_historico.itemDoubleClicked.connect(self._abrir_detalhe_selecionado_hist)
-        h.table_historico.setContextMenuPolicy(Qt.CustomContextMenu)
-        h.table_historico.customContextMenuRequested.connect(self._historico_context_menu)
+        h.btn_editar_h.clicked.connect(self._abrir_detalhe_selecionado_hist)
+        h.btn_excluir_h.clicked.connect(self._excluir_selecionado_hist)
 
-    # -------- UX helpers ----------
-    def _msg_info(self, titulo, texto):
-        QMessageBox.information(self.main_view, titulo, texto)
-
-    def _msg_erro(self, titulo, texto):
-        QMessageBox.critical(self.main_view, titulo, texto)
+    # Helpers
+    def _msg_info(self, titulo, texto): QMessageBox.information(self.main_view, titulo, texto)
+    def _msg_erro(self, titulo, texto): QMessageBox.critical(self.main_view, titulo, texto)
 
     def _linha_para_id(self, table, row):
-        # ID está na coluna 0 (oculta)
         item = table.item(row, 0)
         if not item: return None
-        try:
-            return int(item.text())
-        except Exception:
-            return None
+        try: return int(item.text())
+        except: return None
 
-    def _pintar_linha_por_status(self, table, row, status, prox):
-        # Badge básico via cor de fundo por status
-        cor = None
-        s = (status or "").lower()
-        if "aguardando" in s:
-            cor = Qt.yellow
-        elif "reparo" in s:
-            cor = Qt.magenta
-        elif "pronto" in s:
-            cor = Qt.green
-        elif "entregue" in s:
-            cor = Qt.cyan
-        elif "análise" in s or "analise" in s:
-            cor = Qt.lightGray
-
-        # Vencido (próx manutenção < hoje) = vermelho suave
-        try:
-            if prox:
-                today = QDate.currentDate()
-                y, m, d = map(int, prox.split("-"))
-                if QDate(y, m, d) < today:
-                    cor = Qt.red
-        except Exception:
-            pass
-
-        if cor:
-            for c in range(table.columnCount()):
-                item = table.item(row, c)
-                if item:
-                    item.setBackground(cor)
-
-    # -------- CADASTRO ----------
+    # CADASTRO
     def adicionar_equipamento(self):
         mv = self.main_view
         tag = (mv.input_tag.text() or "").strip()
@@ -115,39 +81,61 @@ class MainController:
         self._msg_info("Sucesso", f"Equipamento '{nome}' (TAG {tag}) adicionado com sucesso!")
         mv.clear_inputs()
 
-    # -------- CONSULTA ----------
+    # CONSULTA
     def mostrar_consulta(self):
-        self.consulta_view.input_busca.clear()
-        self.consulta_view.table_resultados.setRowCount(0)
+        v = self.consulta_view
+        v.input_busca.clear()
+        v.filtro_status.setCurrentIndex(0)
+        v.filtro_tipo.setCurrentIndex(0)
+        v.filtro_prioridade.setCurrentIndex(0)
+        v.table_resultados.setRowCount(0)
+        v.lbl_count.setText("0 resultados")
         self.stacked_widget.setCurrentIndex(1)
 
-    def _consulta_buscar(self):
-        termo = (self.consulta_view.input_busca.text() or "").strip()
-        resultados = self.model.buscar_simples(termo)
-        t = self.consulta_view.table_resultados
-        t.setRowCount(len(resultados))
-        for i, row in enumerate(resultados):
-            # (id, tag, nome, cliente, modelo, descricao, tipo, status, prioridade, prox, data)
-            eid, tag, nome, cliente, modelo, desc, tipo, status, prioridade, prox, data = row
-            for col, val in enumerate([eid, tag, nome, cliente, modelo, desc, tipo, status, prioridade, prox, data]):
-                item = QTableWidgetItem(str(val or ""))
-                if col == 0:  # ID
-                    item.setData(Qt.UserRole, eid)
-                t.setItem(i, col, item)
-            self._pintar_linha_por_status(t, i, status, prox)
+    def _consulta_limpar(self):
+        v = self.consulta_view
+        v.input_busca.clear()
+        v.filtro_status.setCurrentIndex(0)
+        v.filtro_tipo.setCurrentIndex(0)
+        v.filtro_prioridade.setCurrentIndex(0)
+        v.table_resultados.setRowCount(0)
+        v.lbl_count.setText("0 resultados")
 
-    def _consulta_context_menu(self, pos:QPoint):
-        t = self.consulta_view.table_resultados
-        row = t.currentRow()
-        if row < 0: return
-        menu = QMenu(t)
-        act_edit = menu.addAction("Editar")
-        act_del  = menu.addAction("Excluir")
-        action = menu.exec_(t.mapToGlobal(pos))
-        if action == act_edit:
-            self._abrir_detalhe_selecionado()
-        elif action == act_del:
-            self._excluir_selecionado()
+    def _consulta_buscar(self):
+        v = self.consulta_view
+        termo = (v.input_busca.text() or "").strip()
+
+        status = v.filtro_status.currentText()
+        tipo = v.filtro_tipo.currentText()
+        prioridade = v.filtro_prioridade.currentText()
+        status = "" if status.startswith("(") else status
+        tipo = "" if tipo.startswith("(") else tipo
+        prioridade = "" if prioridade.startswith("(") else prioridade
+
+        # usar buscar_simples para texto e buscar_avancado para filtros
+        if any([status, tipo, prioridade]):
+            resultados = self.model.buscar_avancado(
+                termo=termo, status=status, tipo=tipo, prioridade=prioridade
+            )
+            # buscar_avancado não retorna descrição; então fazemos um merge simples:
+            # para simplificar, quando filtros existem, mostramos sem a coluna descrição (ou vazia).
+            # (Mantemos a estrutura das 11 colunas, coluna 5 vazia)
+            t = v.table_resultados
+            t.setRowCount(len(resultados))
+            for i, (eid, tag, nome, cliente, modelo, status, prioridade, prox, data) in enumerate(resultados):
+                values = [eid, tag, nome, cliente, modelo, "", "", status, prioridade, prox, data]
+                for col, val in enumerate(values):
+                    t.setItem(i, col, QTableWidgetItem(str(val or "")))
+        else:
+            res = self.model.buscar_simples(termo)
+            t = v.table_resultados
+            t.setRowCount(len(res))
+            for i, row in enumerate(res):
+                # (id, tag, nome, cliente, modelo, descricao, tipo, status, prioridade, prox, data)
+                for col, val in enumerate(row):
+                    t.setItem(i, col, QTableWidgetItem(str(val or "")))
+
+        v.lbl_count.setText(f"{v.table_resultados.rowCount()} resultados")
 
     def _abrir_detalhe_selecionado(self):
         t = self.consulta_view.table_resultados
@@ -157,34 +145,28 @@ class MainController:
         if not equip_id: return
         self._abrir_dialogo_detalhe(equip_id)
 
-    # -------- HISTÓRICO ----------
-    def mostrar_historico(self):
-        resultados = self.model.buscar_avancado(termo="")
-        t = self.historico_view.table_historico
-        t.setRowCount(len(resultados))
-        for i, row in enumerate(resultados):
-            # (id, tag, nome, cliente, modelo, status, prioridade, prox, data)
-            eid, tag, nome, cliente, modelo, status, prioridade, prox, data = row
-            for col, val in enumerate([eid, tag, nome, cliente, modelo, status, prioridade, prox, data]):
-                item = QTableWidgetItem(str(val or ""))
-                if col == 0:
-                    item.setData(Qt.UserRole, eid)
-                t.setItem(i, col, item)
-            self._pintar_linha_por_status(t, i, status, prox)
-        self.stacked_widget.setCurrentIndex(2)
-
-    def _historico_context_menu(self, pos:QPoint):
-        t = self.historico_view.table_historico
+    def _excluir_selecionado(self):
+        t = self.consulta_view.table_resultados
         row = t.currentRow()
         if row < 0: return
-        menu = QMenu(t)
-        act_edit = menu.addAction("Editar")
-        act_del  = menu.addAction("Excluir")
-        action = menu.exec_(t.mapToGlobal(pos))
-        if action == act_edit:
-            self._abrir_detalhe_selecionado_hist()
-        elif action == act_del:
-            self._excluir_selecionado_hist()
+        equip_id = self._linha_para_id(t, row)
+        if not equip_id: return
+        if QMessageBox.question(self.main_view, "Excluir", "Deseja remover este registro?", QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes:
+            if self.model.excluir(equip_id):
+                self._msg_info("Removido", "Registro excluído.")
+                self._consulta_buscar()
+
+    # HISTÓRICO
+    def mostrar_historico(self):
+        v = self.historico_view
+        res = self.model.buscar_avancado(termo="")
+        t = v.table_historico
+        t.setRowCount(len(res))
+        for i, (eid, tag, nome, cliente, modelo, status, prioridade, prox, data) in enumerate(res):
+            for col, val in enumerate([eid, tag, nome, cliente, modelo, status, prioridade, prox, data]):
+                t.setItem(i, col, QTableWidgetItem(str(val or "")))
+        v.lbl_count_h.setText(f"{t.rowCount()} resultados")
+        self.stacked_widget.setCurrentIndex(2)
 
     def _abrir_detalhe_selecionado_hist(self):
         t = self.historico_view.table_historico
@@ -194,8 +176,24 @@ class MainController:
         if not equip_id: return
         self._abrir_dialogo_detalhe(equip_id)
 
-    # -------- DIÁLOGO DETALHE ----------
+    def _excluir_selecionado_hist(self):
+        t = self.historico_view.table_historico
+        row = t.currentRow()
+        if row < 0: return
+        equip_id = self._linha_para_id(t, row)
+        if not equip_id: return
+        if QMessageBox.question(self.main_view, "Excluir", "Deseja remover este registro?", QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes:
+            if self.model.excluir(equip_id):
+                self._msg_info("Removido", "Registro excluído.")
+                self.mostrar_historico()
+
+    # DIÁLOGO DETALHE (reutiliza o que já existir no seu projeto)
     def _abrir_dialogo_detalhe(self, equip_id:int):
+        try:
+            from view.detalheview import DetalheView
+        except Exception:
+            self._msg_erro("Detalhe não disponível", "A tela de edição/detalhe não está configurada.")
+            return
         rec = self.model.obter_por_id(equip_id)
         if not rec:
             self._msg_erro("Erro", "Registro não encontrado.")
@@ -215,7 +213,7 @@ class MainController:
             )
             if ok:
                 self._msg_info("Salvo", "Atualizado com sucesso.")
-                # refresh da tela correta
+                # atualiza a tela atual
                 if self.stacked_widget.currentIndex() == 1:
                     self._consulta_buscar()
                 else:
@@ -223,29 +221,6 @@ class MainController:
             else:
                 self._msg_erro("Erro", "Não foi possível atualizar.")
 
-    # -------- EXCLUSÃO ----------
-    def _excluir_selecionado(self):
-        t = self.consulta_view.table_resultados
-        row = t.currentRow()
-        if row < 0: return
-        equip_id = self._linha_para_id(t, row)
-        if not equip_id: return
-        if QMessageBox.question(self.main_view, "Excluir", "Deseja remover este registro?", QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes:
-            if self.model.excluir(equip_id):
-                self._msg_info("Removido", "Registro excluído.")
-                self._consulta_buscar()
-
-    def _excluir_selecionado_hist(self):
-        t = self.historico_view.table_historico
-        row = t.currentRow()
-        if row < 0: return
-        equip_id = self._linha_para_id(t, row)
-        if not equip_id: return
-        if QMessageBox.question(self.main_view, "Excluir", "Deseja remover este registro?", QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes:
-            if self.model.excluir(equip_id):
-                self._msg_info("Removido", "Registro excluído.")
-                self.mostrar_historico()
-
-    # -------- Navegação ----------
+    # Navegação
     def voltar(self):
         self.stacked_widget.setCurrentIndex(0)

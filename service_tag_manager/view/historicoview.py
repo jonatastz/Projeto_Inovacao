@@ -9,9 +9,9 @@ class HistoricoView(QWidget):
         t = self.table_historico
         t.setColumnCount(9)
         t.setHorizontalHeaderLabels([
-            "ID", "Tag", "Nome", "Cliente", "Modelo", "Status",
-            "Prioridade", "Próx. Manut.", "Data Cad."
+            "ID","Tag","Nome","Cliente","Modelo","Status","Prioridade","Próx. Manut.","Data Cad."
         ])
+
         h = t.horizontalHeader()
         h.setSectionResizeMode(0, QHeaderView.ResizeToContents) # ID
         h.setSectionResizeMode(1, QHeaderView.ResizeToContents) # Tag
@@ -27,6 +27,4 @@ class HistoricoView(QWidget):
         t.setSelectionBehavior(t.SelectRows)
         t.setSelectionMode(t.SingleSelection)
         t.setEditTriggers(t.NoEditTriggers)
-
-        # Esconde ID visualmente
         t.setColumnHidden(0, True)

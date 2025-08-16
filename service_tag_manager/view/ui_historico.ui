@@ -5,16 +5,33 @@
   <property name="windowTitle">
    <string>HISTÓRICO DE EQUIPAMENTOS</string>
   </property>
+  <property name="minimumSize">
+   <size><width>720</width><height>520</height></size>
+  </property>
   <property name="styleSheet">
    <string notr="true"><![CDATA[
     QWidget { background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 #a8e6cf, stop:1 #00bcd4); font-size: 12px; }
-    QPushButton { background-color: #4CAF50; color: white; border-radius: 10px; padding: 8px 16px; font-weight: 600; }
+    QLabel { color: #0b2f2f; font-weight: 700; }
+    QPushButton {
+        background-color: #4CAF50; color: white; border-radius: 10px;
+        padding: 6px 12px; font-weight: 600; min-width: 80px; min-height: 40px;
+    }
     QPushButton:hover { background-color: #45a049; }
     QTableWidget { background-color: #ffffff; border-radius: 6px; }
    ]]></string>
   </property>
 
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
+   <!-- Título -->
+   <item>
+    <widget class="QLabel" name="lbl_title">
+     <property name="text"><string>Histórico de Equipamentos</string></property>
+     <property name="alignment"><set>Qt::AlignHCenter</set></property>
+     <property name="styleSheet"><string notr="true">font-size: 18px; font-weight: 700; color:#0b2f2f;</string></property>
+    </widget>
+   </item>
+
+   <!-- Tabela -->
    <item>
     <widget class="QTableWidget" name="table_historico">
      <property name="columnCount"><number>9</number></property>
@@ -30,10 +47,15 @@
     </widget>
    </item>
 
+   <!-- Rodapé -->
    <item>
-    <widget class="QPushButton" name="btn_voltar_historico">
-     <property name="text"><string>Voltar</string></property>
-    </widget>
+    <layout class="QHBoxLayout" name="hl_bottom">
+     <item><widget class="QLabel" name="lbl_count_h"><property name="text"><string>0 resultados</string></property></widget></item>
+     <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint"><size><width>40</width><height>20</height></size></property></spacer></item>
+     <item><widget class="QPushButton" name="btn_editar_h"><property name="text"><string>Editar</string></property></widget></item>
+     <item><widget class="QPushButton" name="btn_excluir_h"><property name="text"><string>Excluir</string></property></widget></item>
+     <item><widget class="QPushButton" name="btn_voltar_historico"><property name="text"><string>Voltar</string></property></widget></item>
+    </layout>
    </item>
   </layout>
  </widget>

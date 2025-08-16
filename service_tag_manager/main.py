@@ -11,29 +11,20 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    # Criar o stacked widget que será a janela principal
     stacked_widget = QStackedWidget()
 
-    # Criar as views
     main_view = MainView()
     consulta_view = ConsultaView()
     historico_view = HistoricoView()
 
-    # Adicionar as views ao stacked widget
     stacked_widget.addWidget(main_view)
     stacked_widget.addWidget(consulta_view)
     stacked_widget.addWidget(historico_view)
 
-    # Criar modelo e controlador
-    model = EquipmentModel()
-    controller = MainController(
-        stacked_widget, main_view, consulta_view, historico_view, model
-    )
+    model = EquipmentModel("equipamentos.db")
+    controller = MainController(stacked_widget, main_view, consulta_view, historico_view, model)
 
-    # Definir o título da janela principal (QStackedWidget)
-    stacked_widget.setWindowTitle("Service Tag Maneger")
-
-    # Mostrar a primeira view
+    stacked_widget.setWindowTitle("Service Tag Manager")
     stacked_widget.setCurrentIndex(0)
     stacked_widget.show()
 

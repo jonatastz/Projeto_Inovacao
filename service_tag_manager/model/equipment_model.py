@@ -1,191 +1,158 @@
+
 import sqlite3
 
 class EquipmentModel:
     def __init__(self, db_path="equipamentos.db"):
         self.conn = sqlite3.connect(db_path)
         self.conn.execute("PRAGMA foreign_keys = ON;")
-        self._criar_tabela()
-        self._migrar_colunas()
-        self._sanear_tags_e_deduplicar()
+        self._criar_tabelas()
         self._garantir_indices()
 
-    def _criar_tabela(self):
+    def _criar_tabelas(self):
         c = self.conn.cursor()
         c.execute("""
             CREATE TABLE IF NOT EXISTS equipamentos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                tag TEXT,
+                tag TEXT NOT NULL UNIQUE,
                 nome TEXT NOT NULL,
                 descricao TEXT,
-                data_cadastro TEXT
+                data_cadastro TEXT DEFAULT CURRENT_TIMESTAMP,
+                cliente TEXT,
+                modelo TEXT,
+                serial TEXT,
+                tipo_servico TEXT,
+                status TEXT,
+                prioridade TEXT,
+                proxima_manutencao TEXT,
+                custo REAL,
+                garantia_meses INTEGER,
+                observacoes TEXT
             )
         """)
-        self.conn.commit()
-
-    def _migrar_colunas(self):
-        c = self.conn.cursor()
-        c.execute("PRAGMA table_info(equipamentos);")
-        cols = {row[1] for row in c.fetchall()}
-
-        add_cols = []
-        for col_sql in [
-            ("data_cadastro",      "TEXT"),
-            ("cliente",            "TEXT"),
-            ("modelo",             "TEXT"),
-            ("serial",             "TEXT"),
-            ("tipo_servico",       "TEXT"),
-            ("status",             "TEXT"),
-            ("prioridade",         "TEXT"),
-            ("proxima_manutencao", "TEXT"),
-            ("custo",              "REAL"),
-            ("garantia_meses",     "INTEGER"),
-            ("observacoes",        "TEXT"),
-        ]:
-            if col_sql[0] not in cols:
-                add_cols.append(f"ALTER TABLE equipamentos ADD COLUMN {col_sql[0]} {col_sql[1]};")
-
-        for sql in add_cols:
-            c.execute(sql)
-        self.conn.commit()
-
-        c.execute("UPDATE equipamentos SET data_cadastro = COALESCE(data_cadastro, datetime('now')) WHERE data_cadastro IS NULL;")
-        self.conn.commit()
-
-    def _sanear_tags_e_deduplicar(self):
-        c = self.conn.cursor()
-        c.execute("UPDATE equipamentos SET tag = NULL WHERE tag IS NULL OR TRIM(tag) = '';")
-        self.conn.commit()
         c.execute("""
-            SELECT tag FROM equipamentos
-            WHERE tag IS NOT NULL
-            GROUP BY tag HAVING COUNT(*) > 1;
-        """)
-        dups = [r[0] for r in c.fetchall()]
-        for tag in dups:
-            c.execute("SELECT id FROM equipamentos WHERE tag = ? ORDER BY id DESC;", (tag,))
-            ids = [r[0] for r in c.fetchall()]
-            manter, apagar = ids[0], ids[1:]
-            if apagar:
-                c.executemany("DELETE FROM equipamentos WHERE id = ?;", [(i,) for i in apagar])
+            CREATE TABLE IF NOT EXISTS servicos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                equipamento_id INTEGER NOT NULL,
+                data_servico TEXT DEFAULT CURRENT_TIMESTAMP,
+                tipo TEXT,
+                descricao TEXT,
+                tecnico TEXT,
+                status TEXT,
+                custo REAL,
+                garantia_meses INTEGER,
+                observacoes TEXT,
+                FOREIGN KEY(equipamento_id) REFERENCES equipamentos(id) ON DELETE CASCADE
+            )
+        """ )
         self.conn.commit()
 
     def _garantir_indices(self):
         c = self.conn.cursor()
-        c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_equip_tag ON equipamentos(tag);")
-        c.execute("CREATE INDEX IF NOT EXISTS idx_equip_nome ON equipamentos(nome);")
-        c.execute("CREATE INDEX IF NOT EXISTS idx_equip_cliente ON equipamentos(cliente);")
-        c.execute("CREATE INDEX IF NOT EXISTS idx_equip_status ON equipamentos(status);")
+        c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_eq_tag ON equipamentos(tag);")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_eq_nome ON equipamentos(nome);")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_eq_cliente ON equipamentos(cliente);")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_eq_status ON equipamentos(status);")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_serv_equip ON servicos(equipamento_id);")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_serv_data ON servicos(data_servico);")
         self.conn.commit()
 
-    # --- CRUD ---
-    def adicionar_equipamento(self, tag, nome, descricao, cliente, modelo, serial,
-                              tipo_servico, status, prioridade, proxima_manutencao,
-                              custo, garantia_meses, observacoes):
-        if not tag or not nome or not cliente:
-            raise sqlite3.IntegrityError("Tag, Nome e Cliente são obrigatórios.")
-        tag = tag.strip(); nome = nome.strip(); cliente = cliente.strip()
+    # ===== Equipamentos =====
+    def adicionar_equipamento(self, tag, nome, descricao=None, cliente=None, modelo=None, serial=None,
+                              tipo_servico=None, status=None, prioridade=None, proxima_manutencao=None,
+                              custo=None, garantia_meses=None, observacoes=None):
         c = self.conn.cursor()
         c.execute("""
             INSERT INTO equipamentos
-            (tag, nome, descricao, data_cadastro, cliente, modelo, serial,
-             tipo_servico, status, prioridade, proxima_manutencao, custo,
-             garantia_meses, observacoes)
-            VALUES (?, ?, ?, datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (tag, nome, (descricao or ""), cliente, (modelo or ""), (serial or ""),
-              (tipo_servico or ""), (status or ""), (prioridade or ""),
-              (proxima_manutencao or ""), float(custo or 0), int(garantia_meses or 0),
-              (observacoes or "")))
+            (tag, nome, descricao, cliente, modelo, serial, tipo_servico, status, prioridade,
+             proxima_manutencao, custo, garantia_meses, observacoes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (tag, nome, descricao or "", cliente or "", modelo or "", serial or "",
+               tipo_servico or "", status or "", prioridade or "", proxima_manutencao or "",
+               float(custo or 0.0), int(garantia_meses or 0), observacoes or ""))
         self.conn.commit()
         return c.lastrowid
 
-    def obter_por_id(self, equip_id:int):
+    def atualizar_equipamento(self, equip_id:int, **kwargs):
+        if not kwargs:
+            return False
+        cols = []
+        vals = []
+        for k, v in kwargs.items():
+            cols.append(f"{k} = ?")
+            vals.append(v if v is not None else "")
+        vals.append(equip_id)
+        sql = f"UPDATE equipamentos SET {', '.join(cols)} WHERE id = ?"
         c = self.conn.cursor()
-        c.execute("""
-            SELECT id, tag, nome, cliente, modelo, serial, descricao, tipo_servico,
-                   status, prioridade, proxima_manutencao, custo, garantia_meses,
-                   observacoes, data_cadastro
-            FROM equipamentos WHERE id = ?
-        """, (equip_id,))
-        return c.fetchone()
-
-    def atualizar_basico(self, equip_id:int, status:str, prioridade:str, proxima_manutencao:str, observacoes:str):
-        c = self.conn.cursor()
-        c.execute("""
-            UPDATE equipamentos
-               SET status = ?, prioridade = ?, proxima_manutencao = ?, observacoes = ?
-             WHERE id = ?
-        """, (status or "", prioridade or "", proxima_manutencao or "", observacoes or "", equip_id))
+        c.execute(sql, vals)
         self.conn.commit()
         return c.rowcount > 0
 
-    def excluir(self, equip_id:int):
+    def excluir_equipamento(self, equip_id:int):
         c = self.conn.cursor()
         c.execute("DELETE FROM equipamentos WHERE id = ?", (equip_id,))
         self.conn.commit()
         return c.rowcount > 0
 
-    # --- Buscas ---
-    def buscar_simples(self, termo=""):
-        """Consulta (com id primeiro): por tag/nome/cliente/modelo."""
+    def obter_por_id(self, equip_id:int):
         c = self.conn.cursor()
-        where = []; params = []
-        termo = (termo or "").strip()
+        c.execute("""
+            SELECT id, tag, nome, cliente, modelo, serial, descricao, tipo_servico, status, prioridade,
+                   proxima_manutencao, custo, garantia_meses, observacoes, data_cadastro
+            FROM equipamentos WHERE id = ?
+        """, (equip_id,))
+        return c.fetchone()
+
+    def consultar(self, termo=None, tag=None, nome=None, cliente=None, modelo=None,
+                  status=None, tipo=None, prioridade=None, prox_ini=None, prox_fim=None):
+        where = []
+        params = []
         if termo:
             like = f"%{termo}%"
             where.append("(tag LIKE ? OR nome LIKE ? OR cliente LIKE ? OR modelo LIKE ?)")
             params += [like, like, like, like]
+        if tag: where.append("tag LIKE ?") or params.append(f"%{tag}%")
+        if nome: where.append("nome LIKE ?") or params.append(f"%{nome}%")
+        if cliente: where.append("cliente LIKE ?") or params.append(f"%{cliente}%")
+        if modelo: where.append("modelo LIKE ?") or params.append(f"%{modelo}%")
+        if status: where.append("status = ?") or params.append(status)
+        if tipo: where.append("tipo_servico = ?") or params.append(tipo)
+        if prioridade: where.append("prioridade = ?") or params.append(prioridade)
+        if prox_ini: where.append("date(COALESCE(proxima_manutencao,'')) >= date(?)") or params.append(prox_ini)
+        if prox_fim: where.append("date(COALESCE(proxima_manutencao,'')) <= date(?)") or params.append(prox_fim)
 
         sql = """
             SELECT id, COALESCE(tag,''), COALESCE(nome,''), COALESCE(cliente,''), COALESCE(modelo,''),
-                   COALESCE(descricao,''), COALESCE(tipo_servico,''), COALESCE(status,''),
-                   COALESCE(prioridade,''), COALESCE(proxima_manutencao,''), COALESCE(data_cadastro,'')
+                   COALESCE(descricao,''), COALESCE(tipo_servico,''), COALESCE(status,''), COALESCE(prioridade,''),
+                   COALESCE(proxima_manutencao,''), COALESCE(data_cadastro,'')
             FROM equipamentos
         """
         if where:
             sql += " WHERE " + " AND ".join(where)
         sql += " ORDER BY id DESC"
-
+        c = self.conn.cursor()
         c.execute(sql, params)
         return c.fetchall()
 
-    def buscar_avancado(self, termo="", status="", tipo="", prioridade="",
-                        cliente="", modelo="", data_ini="", data_fim="",
-                        prox_ini="", prox_fim=""):
-        """Histórico (com id primeiro)."""
+    # ===== Serviços =====
+    def adicionar_servico(self, equipamento_id:int, data_servico=None, tipo=None, descricao=None,
+                          tecnico=None, status=None, custo=None, garantia_meses=None, observacoes=None):
         c = self.conn.cursor()
-        where = []; params = []
+        c.execute("""
+            INSERT INTO servicos (equipamento_id, data_servico, tipo, descricao, tecnico, status, custo, garantia_meses, observacoes)
+            VALUES (?, COALESCE(?, CURRENT_TIMESTAMP), ?, ?, ?, ?, ?, ?, ?)
+        """, (equipamento_id, data_servico, tipo or "", descricao or "", tecnico or "",
+                status or "", float(custo or 0.0), int(garantia_meses or 0), observacoes or ""))
+        self.conn.commit()
+        return c.lastrowid
 
-        if termo:
-            like = f"%{termo}%"
-            where.append("(tag LIKE ? OR nome LIKE ? OR cliente LIKE ? OR modelo LIKE ?)")
-            params += [like, like, like, like]
-        if status:
-            where.append("status = ?"); params.append(status)
-        if tipo:
-            where.append("tipo_servico = ?"); params.append(tipo)
-        if prioridade:
-            where.append("prioridade = ?"); params.append(prioridade)
-        if cliente:
-            where.append("cliente LIKE ?"); params.append(f"%{cliente}%")
-        if modelo:
-            where.append("modelo LIKE ?"); params.append(f"%{modelo}%")
-        if data_ini:
-            where.append("date(data_cadastro) >= date(?)"); params.append(data_ini)
-        if data_fim:
-            where.append("date(data_cadastro) <= date(?)"); params.append(data_fim)
-        if prox_ini:
-            where.append("date(COALESCE(proxima_manutencao,'')) >= date(?)"); params.append(prox_ini)
-        if prox_fim:
-            where.append("date(COALESCE(proxima_manutencao,'')) <= date(?)"); params.append(prox_fim)
-
-        sql = """
-            SELECT id, COALESCE(tag,''), COALESCE(nome,''), COALESCE(cliente,''), COALESCE(modelo,''),
-                   COALESCE(status,''), COALESCE(prioridade,''), COALESCE(proxima_manutencao,''), COALESCE(data_cadastro,'')
-            FROM equipamentos
-        """
-        if where:
-            sql += " WHERE " + " AND ".join(where)
-        sql += " ORDER BY id DESC"
-
-        c.execute(sql, params)
+    def listar_servicos_por_equipamento(self, equipamento_id:int):
+        c = self.conn.cursor()
+        c.execute("""
+            SELECT id, equipamento_id, COALESCE(data_servico,''), COALESCE(tipo,''), COALESCE(descricao,''),
+                   COALESCE(tecnico,''), COALESCE(status,''), COALESCE(custo,0.0), COALESCE(garantia_meses,0),
+                   COALESCE(observacoes,'')
+            FROM servicos
+            WHERE equipamento_id = ?
+            ORDER BY date(COALESCE(data_servico,'')) DESC, id DESC
+        """, (equipamento_id,))
         return c.fetchall()
